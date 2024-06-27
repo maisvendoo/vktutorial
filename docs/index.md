@@ -1,5 +1,5 @@
 # Введение
 
-## [Настройка проекта](project_settings.md)
+## [1. Настройка проекта](project_settings.md)
 
-## [Инициализация Vulkan](vulkan-initialization.md)
+## [2. Инициализация Vulkan](vulkan-initialization.md)
