@@ -91,7 +91,7 @@ vktutorial-
 + каталоги include/ и src/ - заголовочные и исходные файлы основного проекта
 
 
-Пишем код пока еще пустой функции main() нашей будущей учебной программы
+Пишем код пока еще пустой функции main() нашей будущей учебной программы в файле **main.cpp**
 
 ```cpp
 #include	<main.h>
@@ -104,4 +104,58 @@ int main(int argc, char *argv[])
 	return 0;
 }
 ```
- 
+и заголовочный файл **main.h** который будет содержать включения всех необходимых заголовков.
+
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#endif
+```
+
+Для сборки проекта напишем два сценария CMakeLists.txt. Одни для vkengine
+
+```cmake
+# Минимально необходимая версия CMake
+cmake_minimum_required (VERSION 3.7)
+
+# Устанавливаем переменную TARGET как имя исполняемого файла
+set (TARGET vkengine)
+
+# Задаем имя проекта
+project (${TARGET})
+
+# Включаем требование соответствие стандарту C++20
+set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Задаем путь, по которому будет расположен исполняемый файл
+set (EXECUTABLE_OUTPUT_PATH "../../bin/")
+
+# Указываем шаблон поиска заголовочных и исходных файлов
+file (GLOB INCLUDES "./include/*.h")
+file (GLOB SOURCES "./src/*.cpp")
+
+# Ищем в системе установленный Vulkan SDK
+find_package (Vulkan REQUIRED)
+
+# Задаем сборку исполняемого файла
+add_executable (${TARGET} ${SOURCES} ${INCLUDES})
+
+# Указыаем каталог поиска заголовочных файлов
+target_include_directories (${TARGET} PRIVATE ./include/)
+
+# Компонуем исполняемый файл с библиотеками Vulkan
+target_link_libraries (${TARGET} PRIVATE Vulkan::Vulkan)
+```
+
+другой для сборки vkengine и других подпроектов, находящихся с ним на одном уровне иерархии
+
+```cmake
+cmake_minimum_required (VERSION 3.7)
+
+project (vktutorial)
+
+add_subdirectory (vkengine)
+```
+
