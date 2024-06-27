@@ -49,6 +49,11 @@ VkInstanceCreateInfo vkinit::instance_create_info(const std::string &app_name)
             info.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             info.ppEnabledLayerNames = validationLayers.data();
         }
+        else
+        {
+            throw std::runtime_error("ERROR: Validation layers requested, but not available!");
+        }
+
     }
 
     info.enabledExtensionCount = 0;
