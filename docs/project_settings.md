@@ -113,6 +113,10 @@ int main(int argc, char *argv[])
 #endif
 ```
 
+
+## Настройка сборки проекта
+
+
 Для сборки проекта напишем два сценария CMakeLists.txt. Одни для vkengine
 
 ```cmake
@@ -158,4 +162,50 @@ project (vktutorial)
 
 add_subdirectory (vkengine)
 ```
+
+Проверим сборку проекта, для чего запустим консоль компилятора, перейдем в каталог vktutorial/build-win64-release/ и выполним команду
+
+```
+cmake -G "MinGW Makefiles" ..\vktutorial
+```
+
+Если все выполнено верно, получаем выхлоп
+
+```
+-- The C compiler identification is GNU 13.1.0
+-- The CXX compiler identification is GNU 13.1.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Apps/mingw-13.1.0/bin/gcc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: E:/Apps/mingw-13.1.0/bin/c++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Vulkan: C:/VulkanSDK/1.3.283.0/Lib/vulkan-1.lib (found version "1.3.283") found components: glslc glslangValidator
+-- Configuring done (1.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: D:/work/Projects/vktutorial/build-win64-release
+```
+
+CMake сообщает нам что он нашел библиотеку Vulkan и компиляторы шейдеров. После этого можно приступить непосредственно к сборке командой
+
+```
+mingw32-make -j8
+```
+
+ключем -j указав число потоков процессора. 
+
+```
+D:\work\Projects\vktutorial\build-win64-release>mingw32-make -j8
+[ 50%] Building CXX object vkengine/CMakeFiles/vkengine.dir/src/main.cpp.obj
+[100%] Linking CXX executable D:\work\Projects\vktutorial\bin\vkengine.exe
+[100%] Built target vkengine
+```
+
+В каталоге vktutorial/bin должен образоваться файл vkengine.exe. Если это получилось, то можно считать, что всё готова к работе с Vulkan API
+
+
 
