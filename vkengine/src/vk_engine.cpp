@@ -32,7 +32,7 @@ void VulkanEngine::init_vulkan()
 {
     // Формируем структуру для создания экземпляра
     VkInstanceCreateInfo instCreateInfo =
-            vkinit::instance_create_info("Vulkan Engine");
+        vkinit::instance_create_info("Vulkan Engine");
 
     // Создаем экземпляр
     VK_CHECK(vkCreateInstance(&instCreateInfo, nullptr, &instance));

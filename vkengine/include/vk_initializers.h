@@ -6,6 +6,8 @@
 namespace vkinit {
 
     VkInstanceCreateInfo instance_create_info(const std::string &app_name);
+
+    bool check_validation_layers_support(const std::vector<const char*> &validLayers);
 }
 
 #endif

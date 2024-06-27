@@ -1,5 +1,20 @@
 #include    <vk_initializers.h>
 
+#include   <cstring>
+
+// Определяем признак использования слоев валидации, взависимости от типа
+// сборки приложения (выключаем при релизной сборке)
+#ifdef NDEBUG
+constexpr bool enableValidationLayers = false;
+#else
+constexpr bool enableValidationLayers = true;
+#endif
+
+// Список слоев валидации, которые предполагается использовать
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
@@ -25,8 +40,56 @@ VkInstanceCreateInfo vkinit::instance_create_info(const std::string &app_name)
     info.pApplicationInfo = &appInfo;
     info.enabledLayerCount = 0;
     info.ppEnabledLayerNames = nullptr;
+
+    // Задаем слои валидации, если нужно
+    if (enableValidationLayers)
+    {
+        if (check_validation_layers_support(validationLayers))
+        {
+            info.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            info.ppEnabledLayerNames = validationLayers.data();
+        }
+    }
+
     info.enabledExtensionCount = 0;
     info.ppEnabledExtensionNames = nullptr;
 
     return info;
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+bool vkinit::check_validation_layers_support(const std::vector<const char *> &validLayers)
+{
+    uint32_t layerCount = 0;
+
+    // Получаем число доступных слоев валидации
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
+
+    // Теперь, получаем список доступных слоев валидации
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()));
+
+    // Формируем список корректных слоев
+    for (const char* layerName : validLayers)
+    {
+        bool layerFound = false;
+
+        for (const auto &layerProperties : availableLayers)
+        {
+            if (strcmp(layerName, layerProperties.layerName) == 0)
+            {
+                layerFound = true;
+            }
+        }
+
+        if (!layerFound)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
