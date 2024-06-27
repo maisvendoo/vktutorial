@@ -177,3 +177,181 @@ typedef struct VkInstanceCreateInfo {
 + `ppEnabledLayerNames` - указатель на список имен слоев валидации, пока делаем равным `nullptr`;
 + `enabledExtensionCount` - число включенных расширений Vulkan. Делаем равным нулю, потому что пока не планируем использовать какие-либо расширения;
 + `ppEnabledExtensionNames` - список имен используемых расширений. Поскольку мы работаем без расшинений - `nullptr`.
+
+
+Очевидно, что нам предварительно нужно сформировать струтуру типа VkApplicationInfo. Разберем её подробнее
+
+```cpp
+typedef struct VkApplicationInfo {
+    VkStructureType    sType;
+    const void*        pNext;
+    const char*        pApplicationName;
+    uint32_t           applicationVersion;
+    const char*        pEngineName;
+    uint32_t           engineVersion;
+    uint32_t           apiVersion;
+} VkApplicationInfo;
+```
+
++ sType - задает тип структуры, в данном случае `VK_STRUCTURE_TYPE_APPLICATION_INFO`;
++ pNext - указатель на следующую струтуру-расширитель, в нашем случае `nullptr`. В дальнейшем, значения этого поля и предыдущего я буду уточнять только в случае если они выбиваются из представленного шаблона.
++ `pApplicationName` - указатель на строку с именем приложения. Может принимать любое нужное вам значение, пускай в данном случае это будет "Vulkan Engine";
++ applicationVersion - номер версии вашего приложения - произвольно, по вашему вкусу;
++ `pEngineName` - указатедь на сроку с именем движка. Так же может как отсутствовать, так и принимать нужное вам значение;
++ `engineVersion` - номер версии движка;
++ `apiVersion` - версия Vulkan API, которую хочет использовать ваше приложение. Она должна соответствовать минимальной версии Vulkan API, которая требуется вашему приложению для работы и не обязательно должна быть равна версии Vulkan SDK, которая установлена в данный момент на вашем компьютере. 
+
+Теперь приступим к реализации создания экземпляра. Для начала реализуем функцию заполнения необходимых структур
+
+**vk_initializeers.cpp**
+```cpp
+#include    <vk_initializers.h>
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+VkInstanceCreateInfo vkinit::instance_create_info(const std::string &app_name)
+{
+    // Заполняем структуру с информацией о приложении
+    VkApplicationInfo appInfo = {};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pNext = nullptr;
+    appInfo.pApplicationName = app_name.c_str();
+    appInfo.applicationVersion = 1;
+    appInfo.pEngineName = app_name.c_str();
+    appInfo.engineVersion = 1;    
+    // Используем макрос VK_MAKE_VERSION, для формирования значения
+    // соотвествующего версии 1.3.0 Vulkan API
+    appInfo.apiVersion = VK_MAKE_VERSION(1, 3, 0);
+
+    // Заполняем структуру с параметрами экземпляра
+    VkInstanceCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+    info.pApplicationInfo = &appInfo;
+    info.enabledLayerCount = 0;
+    info.ppEnabledLayerNames = nullptr;
+    info.enabledExtensionCount = 0;
+    info.ppEnabledExtensionNames = nullptr;
+
+    return info;
+}
+```
+
+Далее, реализуем вспомогательный макрос VK_CHECK(), формирующий удобочитаемые сообщения об ошибках в консоли нашего приложения. Им мы будем оборачивать все важные вызовы Vulkan
+
+**vk_types.h**
+```cpp
+#ifndef     VK_TYPES_H
+#define     VK_TYPES_H
+
+#include    <iostream>
+#include    <string>
+#include    <format>
+
+#include    <vulkan/vulkan.h>
+#include    <vulkan/vk_enum_string_helper.h>
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+#define VK_CHECK(x) \
+    do \
+    { \
+            VkResult err = x; \
+            if (err != VK_SUCCESS) \
+            { \
+                std::cout << std::format("Detected Vulkan error: {}", \
+                                         string_VkResult(err)) << std::endl; \
+            } \
+    } while (0) \
+ \
+
+#endif
+```
+
+Для инициализации Vulkan создадим в нашем класса VulkanEngine приватную функцию `init_vulkan()`
+
+```cpp
+class VulkanEngine
+{
+public:
+
+    VulkanEngine() = default;
+
+    ~VulkanEngine() = default;
+
+    /// Инициализация движка
+    void init();
+
+    /// Очистка структур данных движка
+    void cleanup();
+
+    /// Запуск движка
+    void run();
+
+private:
+
+    /// Экземпляр Vulkan
+    VkInstance  instance;
+
+    /// Инициализация Vulkan
+    void init_vulkan();
+};
+
+#endif
+```
+
+и, наконец, приступим к реализации
+
+**vk_engine.cpp**
+```cpp
+#include    <vk_engine.h>
+#include    <vk_initializers.h>
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::init()
+{
+    init_vulkan();
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::cleanup()
+{
+
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::run()
+{
+
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::init_vulkan()
+{
+    // Формируем структуру для создания экземпляра
+    VkInstanceCreateInfo instCreateInfo =
+            vkinit::instance_create_info("Vulkan Engine");
+
+    // Создаем экземпляр
+    VK_CHECK(vkCreateInstance(&instCreateInfo, nullptr, &instance));
+}
+```
+
+Полагаю, что приведенный код не нуждается в особом описании. Сначала мы формируем структуру `VkInstanceCreateInfo` вызывая функцию `vkinit::instance_create_info()`, а затем передаем указатель на эту структуру, нулевой указатель для аллокатора и указатель на дескриптор экземпляра в вызов `vkCreateInstance()`, оборацивая её вызов макросом VK_CHECK(), формирующий код, который в случае неудачи укажет нам на ошибку в консольном выхлопе. 
+
+После компиляции и запуска нашего приложения vkengine.exe оно запустившись, завершится, ничего не выводя на экран. Это означает, что экземпляр Vulkan успешно создается нашим приложением.
+
+## Настройка уровней проверки (validation layers) Vulkan API
+
+

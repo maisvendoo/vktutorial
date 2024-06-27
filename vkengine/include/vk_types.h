@@ -17,7 +17,8 @@
             VkResult err = x; \
             if (err != VK_SUCCESS) \
             { \
-                std::cout << std::format("Detected Vulkan error: {}", string_VkResult(err)) << std::endl; \
+                std::cout << std::format("Detected Vulkan error: {}", \
+                                         string_VkResult(err)) << std::endl; \
             } \
     } while (0) \
  \
