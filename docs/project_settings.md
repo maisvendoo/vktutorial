@@ -6,7 +6,7 @@
 + Система сборки CMake, дистрибутив которой [загружается с официального сайта](https://cmake.org/).
 + Официальный [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) актуальной версии.
 
-## Установка компилятора
+## Установка компилятора MinGW и системы сборки CMake
 
 Скачанный архив распаковываем в произвольное место файловой системы. Далее, определяем переменную окружения %MINGW_DIR% указывая путь к каталогу компилятора
 
@@ -21,6 +21,10 @@
 ```E:\Apps\mingw-13.1.0\bin> gcc --version```
 
 ![](https://habrastorage.org/webt/z9/--/nt/z9--ntob5fvvot2bgnxddsawapa.png)
+
+Дистрибутив CMake содержит стандартный инсталятор для ОС Windows, типа "далее-далее", поэтому никаких проблем с установкой не возникает. При установке CMake настоятельно рекомендуется установить опцию «Add CMake to system PATH for all users», для доступа к системе сборки из консоли
+
+![](https://habrastorage.org/webt/mk/wt/96/mkwt96or8nyce5r0iumns71p6fi.png)
 
 
 ## Установка Vulkan SDK
@@ -43,7 +47,41 @@
 
 Значения этих переменных следует привести в соответствие с фактическим расположением SDK на вашем компьютере
 
+## Структура проекта
 
+Наш учебный проект будет иметь следующую структуру каталогов
+
+```
+vktutorial-
+          |
+          -bin
+          |
+          -build-win64-debug
+          |
+          -build-win64-release
+          |
+          -vktutorial-
+                     |
+                     - docs
+                     |
+                     - vkengine-
+                     |         |
+                     |         - include-
+                     |		   |        |
+                     |         |        - main.h
+                     |         |
+                     |         - src-
+                     |         |    |
+                     |         |    - main.cpp   
+                     |         |
+                     |         -CMakeLists.txt
+                     |
+                     -CMakeLists.txt
+                     |
+                     - .gitignore
+                     |
+                     - .gitattributes
+```
 
 
 
