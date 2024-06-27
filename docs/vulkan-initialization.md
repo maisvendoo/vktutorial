@@ -352,6 +352,140 @@ void VulkanEngine::init_vulkan()
 
 После компиляции и запуска нашего приложения vkengine.exe оно запустившись, завершится, ничего не выводя на экран. Это означает, что экземпляр Vulkan успешно создается нашим приложением.
 
-## Настройка уровней проверки (validation layers) Vulkan API
+## Настройка слоев валидации (validation layers) Vulkan 
 
+Vulkan API расчитан на обеспечение максимальной производительности приложения, которое его использует. По этой причине, в отличие от OpenGL, Vulkan явно не обрабатывает подавляющее большинство даже элементарных ошибок, таких как неверное значение перечислителей или передача нулевого указателя. Это может привести к неопределенному поведению и сбоям в работе приложения. Учитывая, что в Vulkan API настраивается очень много параметров, появление подобных ошибок происходит почти наверняка в процессе разработки.
+
+Для решения задачи диагностики приложения в процессе его выполнения, Vulkan предоставляет механизм так называемых *слоев валидации*. Их использование позволяет расширить или изменить поведение вызовов Vulkan, что позволяет выполнять следующие операции:
+
++ проверку значений параметров на соответствие спецификации для обнаружения ошибок;
++ отслеживать утечки ресурсов;
++ проверять безопасность многопоточной работы;
++ логирование вызовов и их параметров;
++ отслеживание вызовов для профилирования.
+
+Слои валидации можно полностью выключать в релизных сборках, для обеспечения наилучшей производительности.
+
+Vulkan не имеет встроенных слоев валидации, однако, LunarG Vulkan SDK, который используем мы, содержит набор слоев для отслеживания наиболее частых ошибок. Введем в наш проект возможность включения слоев валидации в отладочную сборку. 
+
+Для этого в модуле `vk_initializers.cpp` введем следующие определения
+
+```cpp
+// Определяем признак использования слоев валидации, взависимости от типа
+// сборки приложения (выключаем при релизной сборке)
+#ifdef NDEBUG
+constexpr bool enableValidationLayers = false;
+#else
+constexpr bool enableValidationLayers = true;
+#endif
+
+// Список слоев валидации, которые предполагается использовать
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+```
+
+Включим один слой под названием `"VK_LAYER_KHRONOS_validation"`, содержащий все необходимые нам на данном этапе работы проверки.
+
+Введем так же следующую функцию
+
+**vk_initializers.cpp**
+```cpp
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+bool vkinit::check_validation_layers_support(const std::vector<const char *> &validLayers)
+{
+    uint32_t layerCount = 0;
+
+    // Получаем число доступных слоев валидации
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
+
+    // Теперь, получаем список доступных слоев валидации
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()));
+
+    // Формируем список корректных слоев
+    for (const char* layerName : validLayers)
+    {
+        bool layerFound = false;
+
+        for (const auto &layerProperties : availableLayers)
+        {
+            if (strcmp(layerName, layerProperties.layerName) == 0)
+            {
+                layerFound = true;
+            }
+        }
+
+        if (!layerFound)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+```
+
+Данная функция проверяет наличие слоев валидации, перечисленных в константе `validationLayers`. Для получения списка доступных слоев валидации используется вызов `vkEnumerateInstanceLayerProperties()`, имеющий следующую спецификацию
+
+```cpp
+VkResult vkEnumerateInstanceLayerProperties(
+    uint32_t*                                   pPropertyCount,
+    VkLayerProperties*                          pProperties);
+```
+
++ `pPropertyCount` - указатель на переменную, куда будет возвращено число доступных слоев валидации;
++ `pProperties` - указатель на массив структур `VkLayerProperties`, содержащих информацию о каждом слое валидации
+
+```cpp
+typedef struct VkLayerProperties {
+    char        layerName[VK_MAX_EXTENSION_NAME_SIZE];
+    uint32_t    specVersion;
+    uint32_t    implementationVersion;
+    char        description[VK_MAX_DESCRIPTION_SIZE];
+} VkLayerProperties;
+```
+
+Здесь
+
++ `layerName` - строка, содержащая имя слоя;
++ `specVersion` - версия Vulkan, в которой был введен данный слой;
++ `implementationVersion` - версия слоя;
++ `description` - строка-описание, содержащая дополнительные сведения, которые могут быть использованы приложениями для идентификации данного слоя.
+
+Мы вызываем функцию `vkEnumerateInstanceLayerProperties()` дважды: в первый раз передаем ей нулевой указатель на список свойств слоев, получая число доступных слоев. Далее мы выделяем память под список свойств слоев, и вызываем функцию еще раз, получая список доступных слоев. Затем мы сравниеваем полученный список с со списком доступных слоев, чтобы убедится, что заданные нами слои корректны.
+
+Теперь мы можем изменить функцию `vkinit::instance_create_info()` следующим образом, в части инициализации структуры VkInstanceCreateInfo
+
+```cpp
+// Заполняем структуру с параметрами экземпляра
+    VkInstanceCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+    info.pApplicationInfo = &appInfo;
+    info.enabledLayerCount = 0;
+    info.ppEnabledLayerNames = nullptr;
+
+    // Задаем слои валидации, если нужно
+    if (enableValidationLayers)
+    {
+        if (check_validation_layers_support(validationLayers))
+        {
+            info.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            info.ppEnabledLayerNames = validationLayers.data();
+        }
+        else
+        {
+            throw std::runtime_error("ERROR: Validation layers requested, but not available!");
+        }
+
+    }
+```
+В случае, если хотя бы одно из заданных нами имен слоев некорректно, мы генерируем исключение с выводом соответствующего сообщения об ошибке.
+
+## Получение дескриптора физического устройства
 
