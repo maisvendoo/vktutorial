@@ -3,6 +3,9 @@
 
 #include    <vk_types.h>
 
+#include    <vector>
+#include    <optional>
+
 /*!
  * \class
  * \brief Простейший графический движок на Vulkan API
@@ -34,8 +37,8 @@ private:
     /// Экземпляр Vulkan
     VkInstance  instance;
 
-    /// Дескрипторы доступных физических устройств
-    VkPhysicalDevice physicalDevice;
+    /// Дескриптор доступного физического устройства
+    std::optional<VkPhysicalDevice> physicalDevice;
 
     /// Инициализация Vulkan
     void init_vulkan();
@@ -45,6 +48,9 @@ private:
 
     /// Проверка доступных уровней валидации
     bool check_validation_layers_support(const std::vector<const char *> &validLayers);
+
+    /// Поиск и выбор физического устройства
+    void physical_device_detection();
 };
 
 #endif

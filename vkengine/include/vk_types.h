@@ -1,12 +1,6 @@
 #ifndef     VK_TYPES_H
 #define     VK_TYPES_H
 
-#include    <iostream>
-#include    <string>
-#include    <format>
-#include    <vector>
-#include   <cstring>
-
 #include    <vulkan/vulkan.h>
 #include    <vulkan/vk_enum_string_helper.h>
 
@@ -19,8 +13,8 @@
             VkResult err = x; \
             if (err != VK_SUCCESS) \
             { \
-                std::cout << std::format("Detected Vulkan error: {}", \
-                                         string_VkResult(err)) << std::endl; \
+                std::cout << "Detected Vulkan error: " \
+                          << string_VkResult(err) << std::endl; \
             } \
     } while (0) \
  \
