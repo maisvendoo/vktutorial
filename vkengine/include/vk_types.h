@@ -5,6 +5,7 @@
 #include    <string>
 #include    <format>
 #include    <vector>
+#include   <cstring>
 
 #include    <vulkan/vulkan.h>
 #include    <vulkan/vk_enum_string_helper.h>

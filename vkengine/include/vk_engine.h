@@ -35,13 +35,16 @@ private:
     VkInstance  instance;
 
     /// Дескрипторы доступных физических устройств
-    std::vector<VkPhysicalDevice> physicalDevices;
-
-    /// Индекс выбранного физического устройства
-    int chosenGPU;
+    VkPhysicalDevice physicalDevice;
 
     /// Инициализация Vulkan
     void init_vulkan();
+
+    /// Создание экземпляра
+    void create_instance();
+
+    /// Проверка доступных уровней валидации
+    bool check_validation_layers_support(const std::vector<const char *> &validLayers);
 };
 
 #endif
