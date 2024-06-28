@@ -61,7 +61,9 @@ void VulkanEngine::init_vulkan()
 
     physical_device_detection();
 
-    queueFamilyIndices = queue_families_detection(physicalDevice.value());
+    queue_families_detection();
+
+    create_logical_device();
 }
 
 //------------------------------------------------------------------------------
@@ -207,15 +209,13 @@ void VulkanEngine::physical_device_detection()
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-QueueFamilyIndices VulkanEngine::queue_families_detection(VkPhysicalDevice physicalDevice)
+void VulkanEngine::queue_families_detection()
 {
-    QueueFamilyIndices queueFamilyIndices;
-
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(), &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(), &queueFamilyCount, queueFamilies.data());
 
     for (size_t i = 0; i < queueFamilies.size(); ++i)
     {
@@ -234,6 +234,12 @@ QueueFamilyIndices VulkanEngine::queue_families_detection(VkPhysicalDevice physi
     {
         throw std::runtime_error("ERROR: Device is't support required queue families!");
     }
+}
 
-    return queueFamilyIndices;
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_logical_device()
+{
+
 }

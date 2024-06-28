@@ -43,6 +43,9 @@ private:
     /// Индесы семейств очередей физического устройства
     QueueFamilyIndices queueFamilyIndices;
 
+    /// Дескриптор логического устройства
+    VkDevice device;
+
     /// Инициализация Vulkan
     void init_vulkan();
 
@@ -56,7 +59,10 @@ private:
     void physical_device_detection();
 
     /// Поиск семейств очередей, поддерживаемых устройством
-    QueueFamilyIndices queue_families_detection(VkPhysicalDevice physicalDevice);
+    void queue_families_detection();
+
+    /// Создание логического устройства
+    void create_logical_device();
 };
 
 #endif
