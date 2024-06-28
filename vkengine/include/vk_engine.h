@@ -40,6 +40,9 @@ private:
     /// Дескриптор доступного физического устройства
     std::optional<VkPhysicalDevice> physicalDevice;
 
+    /// Индесы семейств очередей физического устройства
+    QueueFamilyIndices queueFamilyIndices;
+
     /// Инициализация Vulkan
     void init_vulkan();
 
@@ -51,6 +54,9 @@ private:
 
     /// Поиск и выбор физического устройства
     void physical_device_detection();
+
+    /// Поиск семейств очередей, поддерживаемых устройством
+    QueueFamilyIndices queue_families_detection(VkPhysicalDevice physicalDevice);
 };
 
 #endif
