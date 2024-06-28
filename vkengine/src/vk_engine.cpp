@@ -40,6 +40,8 @@ void VulkanEngine::cleanup()
 {
     if (is_initialized)
     {
+        vkDestroyDevice(device, nullptr);
+
         vkDestroyInstance(instance, nullptr);
     }
 }
@@ -211,12 +213,20 @@ void VulkanEngine::physical_device_detection()
 //------------------------------------------------------------------------------
 void VulkanEngine::queue_families_detection()
 {
+    // ОПределяем количество доступных семейств очередей
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(), &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(),
+                                             &queueFamilyCount,
+                                             nullptr);
 
+    // Запрашиваем список свойств семейтв очередей физического устройства
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(), &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice.value(),
+                                             &queueFamilyCount,
+                                             queueFamilies.data());
 
+    // Опеределяем нужные нам семейства очередей в полученном списке
+    // и фиксируем их индексы
     for (size_t i = 0; i < queueFamilies.size(); ++i)
     {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -241,5 +251,46 @@ void VulkanEngine::queue_families_detection()
 //------------------------------------------------------------------------------
 void VulkanEngine::create_logical_device()
 {
+    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.pNext = nullptr;
+    queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
 
+    VkDeviceCreateInfo deviceCreateInfo = {};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = nullptr;
+    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+
+    deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.ppEnabledExtensionNames = nullptr;
+
+    if (enableValidationLayers)
+    {
+        deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+    }
+    else
+    {
+        deviceCreateInfo.enabledLayerCount = 0;
+        deviceCreateInfo.ppEnabledLayerNames = nullptr;
+    }
+
+    VkResult result = vkCreateDevice(physicalDevice.value(),
+                                     &deviceCreateInfo,
+                                     nullptr,
+                                     &device);
+
+    VK_CHECK(result);
+
+    if (result != VK_SUCCESS)
+    {
+        throw std::runtime_error("ERROR: Failed to create logical device!");
+    }
 }
