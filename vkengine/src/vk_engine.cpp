@@ -7,6 +7,8 @@
 void VulkanEngine::init()
 {
     init_vulkan();
+
+    is_initialized = true;
 }
 
 //------------------------------------------------------------------------------
@@ -14,7 +16,10 @@ void VulkanEngine::init()
 //------------------------------------------------------------------------------
 void VulkanEngine::cleanup()
 {
-
+    if (is_initialized)
+    {
+        vkDestroyInstance(instance, nullptr);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -36,4 +41,16 @@ void VulkanEngine::init_vulkan()
 
     // Создаем экземпляр
     VK_CHECK(vkCreateInstance(&instCreateInfo, nullptr, &instance));
+
+    // Получаем дескрипторы физических устройств
+    vkinit::check_available_physical_devices(instance, physicalDevices);
+
+    // Получаем номер дескриптора для дискретной видеокарты
+    chosenGPU = vkinit::chose_phisycal_device(VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
+                                              physicalDevices);
+
+    if (chosenGPU == -1)
+    {
+        throw std::runtime_error("ERROR: Discrete GPUs is't found!");
+    }
 }

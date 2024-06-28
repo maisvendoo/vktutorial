@@ -25,12 +25,10 @@ VkInstanceCreateInfo vkinit::instance_create_info(const std::string &app_name)
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pNext = nullptr;
     appInfo.pApplicationName = app_name.c_str();
-    appInfo.applicationVersion = 1;
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = app_name.c_str();
-    appInfo.engineVersion = 1;    
-    // Используем макрос VK_MAKE_VERSION, для формирования значения
-    // соотвествующего версии 1.3.0 Vulkan API
-    appInfo.apiVersion = VK_MAKE_VERSION(1, 3, 0);
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_API_VERSION_1_3;
 
     // Заполняем структуру с параметрами экземпляра
     VkInstanceCreateInfo info = {};
@@ -97,4 +95,66 @@ bool vkinit::check_validation_layers_support(const std::vector<const char *> &va
     }
 
     return true;
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void vkinit::check_available_physical_devices(VkInstance instance,
+                                              std::vector<VkPhysicalDevice> &physDevices)
+{
+    // Определяем число доступных физических устройств
+    uint32_t physicalDeviceCount = 0;
+    VkResult result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);    
+
+    if (physicalDeviceCount == 0)
+    {
+        throw std::runtime_error("ERROR: Failed to find GPUs with Vulkan support!");
+    }
+
+    if (result == VK_SUCCESS)
+    {
+        // Выделяем память под дескрипторы физических устройств
+        physDevices.resize(physicalDeviceCount);
+
+        VK_CHECK(vkEnumeratePhysicalDevices(instance,
+                                            &physicalDeviceCount, physDevices.data()));
+    }
+
+    for (auto physicalDevice : physDevices)
+    {
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+
+        vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+
+        uint32_t major = VK_API_VERSION_MAJOR(physicalDeviceProperties.apiVersion);
+        uint32_t minor = VK_API_VERSION_MINOR(physicalDeviceProperties.apiVersion);
+        uint32_t patch = VK_API_VERSION_PATCH(physicalDeviceProperties.apiVersion);
+
+        std::cout << physicalDeviceProperties.deviceName
+                  << " Vulkan API v"
+                  << major << "."
+                  << minor << "." << patch << std::endl;
+    }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+int vkinit::chose_phisycal_device(VkPhysicalDeviceType deviceType,
+                                     const std::vector<VkPhysicalDevice> &physDevices)
+{
+    for (size_t i = 0; i < physDevices.size(); ++i)
+    {
+        VkPhysicalDeviceProperties deviceProperties;
+
+        vkGetPhysicalDeviceProperties(physDevices[i], &deviceProperties);
+
+        if (deviceProperties.deviceType == deviceType)
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }

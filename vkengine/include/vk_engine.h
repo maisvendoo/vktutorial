@@ -29,8 +29,16 @@ public:
 
 private:
 
+    bool is_initialized = false;
+
     /// Экземпляр Vulkan
     VkInstance  instance;
+
+    /// Дескрипторы доступных физических устройств
+    std::vector<VkPhysicalDevice> physicalDevices;
+
+    /// Индекс выбранного физического устройства
+    int chosenGPU;
 
     /// Инициализация Vulkan
     void init_vulkan();
