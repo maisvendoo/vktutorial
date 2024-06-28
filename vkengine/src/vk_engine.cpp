@@ -4,11 +4,12 @@
 #include    <string>
 #include    <vector>
 #include    <cstring>
+#include    <thread>
+#include    <chrono>
 
 
 constexpr std::string ApplicationName = "Vulkane Engine";
 constexpr std::string EngineName = "No engine";
-
 
 // Определяем признак использования слоев валидации, взависимости от типа
 // сборки приложения (выключаем при релизной сборке)
@@ -28,6 +29,8 @@ const std::vector<const char*> validationLayers = {
 //------------------------------------------------------------------------------
 void VulkanEngine::init()
 {
+    create_window();
+
     init_vulkan();
 
     is_initialized = true;
@@ -51,7 +54,55 @@ void VulkanEngine::cleanup()
 //------------------------------------------------------------------------------
 void VulkanEngine::run()
 {
+    SDL_Event e;
+    bool bQuit = false;
 
+    while (!bQuit)
+    {
+        while (SDL_PollEvent(&e) != 0)
+        {
+            if (e.type == SDL_QUIT)
+                bQuit = true;
+
+            if (e.type == SDL_WINDOWEVENT)
+            {
+                if (e.window.event == SDL_WINDOWEVENT_MINIMIZED)
+                {
+                    stop_rendering = true;
+                }
+
+                if (e.window.event == SDL_WINDOWEVENT_RESTORED)
+                {
+                    stop_rendering = false;
+                }
+            }
+        }
+
+        if (stop_rendering)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        render();
+    }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_window()
+{
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_WindowFlags windowFlags = static_cast<SDL_WindowFlags>(SDL_WINDOW_VULKAN);
+
+    window = SDL_CreateWindow(ApplicationName.c_str(),
+                              SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              windowWidth,
+                              windowHeight,
+                              windowFlags);
 }
 
 //------------------------------------------------------------------------------
@@ -61,11 +112,15 @@ void VulkanEngine::init_vulkan()
 {
     create_instance();
 
+    create_surface();
+
     physical_device_detection();
 
     queue_families_detection();
 
     create_logical_device();
+
+    get_device_queues();
 }
 
 //------------------------------------------------------------------------------
@@ -107,8 +162,14 @@ void VulkanEngine::create_instance()
 
     }
 
-    info.enabledExtensionCount = 0;
-    info.ppEnabledExtensionNames = nullptr;
+    uint32_t sdlExtensionsCount = 0;
+    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, nullptr);
+
+    std::vector<const char *> sdlExtinsionNames(sdlExtensionsCount);
+    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, sdlExtinsionNames.data());
+
+    info.enabledExtensionCount = sdlExtensionsCount;
+    info.ppEnabledExtensionNames = sdlExtinsionNames.data();
 
     try
     {
@@ -118,6 +179,14 @@ void VulkanEngine::create_instance()
     {
         std::cout << error.what() << std::endl;
     }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_surface()
+{
+    SDL_Vulkan_CreateSurface(window, instance, &surface);
 }
 
 //------------------------------------------------------------------------------
@@ -293,4 +362,23 @@ void VulkanEngine::create_logical_device()
     {
         throw std::runtime_error("ERROR: Failed to create logical device!");
     }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::get_device_queues()
+{
+    vkGetDeviceQueue(device,
+                     queueFamilyIndices.graphicsFamily.value(),
+                     0,
+                     &deviceQueues.graphicsQueue);
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::render()
+{
+
 }

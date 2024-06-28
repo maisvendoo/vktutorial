@@ -3,6 +3,10 @@
 
 #include    <vk_types.h>
 
+#define     SDL_MAIN_HANDLED
+#include    <SDL.h>
+#include    <SDL_vulkan.h>
+
 #include    <vector>
 #include    <optional>
 
@@ -34,6 +38,14 @@ private:
 
     bool is_initialized = false;
 
+    bool stop_rendering = false;
+
+    const uint32_t windowWidth = 1360;
+
+    const uint32_t windowHeight = 768;
+
+    struct SDL_Window *window = nullptr;
+
     /// Экземпляр Vulkan
     VkInstance  instance;
 
@@ -46,11 +58,23 @@ private:
     /// Дескриптор логического устройства
     VkDevice device;
 
+    /// Дескрипторы очередей логического устройства
+    DeviceQueues deviceQueues;
+
+    /// Дескриптор поверхности
+    VkSurfaceKHR surface;
+
+    /// Создание окна приложения
+    void create_window();
+
     /// Инициализация Vulkan
     void init_vulkan();
 
     /// Создание экземпляра
     void create_instance();
+
+    /// Создание поверхности
+    void create_surface();
 
     /// Проверка доступных уровней валидации
     bool check_validation_layers_support(const std::vector<const char *> &validLayers);
@@ -63,6 +87,12 @@ private:
 
     /// Создание логического устройства
     void create_logical_device();
+
+    /// Получение дескрипторов очередей логического устройства
+    void get_device_queues();
+
+    /// Рендеринг
+    void render();
 };
 
 #endif

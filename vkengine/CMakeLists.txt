@@ -20,6 +20,7 @@ file (GLOB SOURCES "./src/*.cpp")
 
 # Ищем в системе установленный Vulkan SDK
 find_package (Vulkan REQUIRED)
+find_package (SDL2 REQUIRED)
 
 # Задаем сборку исполняемого файла
 add_executable (${TARGET} ${SOURCES} ${INCLUDES})
@@ -29,3 +30,4 @@ target_include_directories (${TARGET} PRIVATE ./include/)
 
 # Компонуем исполняемый файл с библиотеками Vulkan
 target_link_libraries (${TARGET} PRIVATE Vulkan::Vulkan)
+target_link_libraries (${TARGET} PRIVATE SDL2::SDL2)
