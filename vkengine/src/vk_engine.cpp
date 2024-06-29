@@ -6,6 +6,7 @@
 #include    <cstring>
 #include    <thread>
 #include    <chrono>
+#include    <set>
 
 
 constexpr std::string ApplicationName = "Vulkane Engine";
@@ -41,10 +42,16 @@ void VulkanEngine::init()
 //------------------------------------------------------------------------------
 void VulkanEngine::cleanup()
 {
+    // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        // Логическое устройство
         vkDestroyDevice(device, nullptr);
 
+        // Поверхность
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+
+        // Экземпляр
         vkDestroyInstance(instance, nullptr);
     }
 }
@@ -103,6 +110,11 @@ void VulkanEngine::create_window()
                               windowWidth,
                               windowHeight,
                               windowFlags);
+
+    if (window == nullptr)
+    {
+        throw std::runtime_error("ERROR: Window's creation failed!");
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -303,6 +315,19 @@ void VulkanEngine::queue_families_detection()
             queueFamilyIndices.graphicsFamily = i;
         }
 
+        // Проверяем, поддерживает ли данное семейство очередей
+        // отображение в выбранную поверхность
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.value(),
+                                             i,
+                                             surface,
+                                             &presentSupport);
+
+        if (presentSupport)
+        {
+            queueFamilyIndices.presentFamily = i;
+        }
+
         if (queueFamilyIndices.isComplete())
         {
             break;
@@ -320,19 +345,32 @@ void VulkanEngine::queue_families_detection()
 //------------------------------------------------------------------------------
 void VulkanEngine::create_logical_device()
 {
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.pNext = nullptr;
-    queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
+    std::set<uint32_t> uniqueQueueFamilies = {
+        queueFamilyIndices.graphicsFamily.value(),
+        queueFamilyIndices.presentFamily.value()
+    };
+
     float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    for (uint32_t queueFamily : uniqueQueueFamilies)
+    {
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.pNext = nullptr;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pNext = nullptr;
-    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
@@ -373,6 +411,11 @@ void VulkanEngine::get_device_queues()
                      queueFamilyIndices.graphicsFamily.value(),
                      0,
                      &deviceQueues.graphicsQueue);
+
+    vkGetDeviceQueue(device,
+                     queueFamilyIndices.presentFamily.value(),
+                     0,
+                     &deviceQueues.presentQueue);
 }
 
 //------------------------------------------------------------------------------
