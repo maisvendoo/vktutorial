@@ -144,6 +144,10 @@ private:
         const std::vector<VkPresentModeKHR> &availablePresentModes);
 
     VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR &capabilities);
+
+    void init_pipelines();
+
+    void create_graphics_pipeline();
 };
 
 #endif

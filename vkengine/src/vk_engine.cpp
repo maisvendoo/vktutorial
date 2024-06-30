@@ -63,6 +63,8 @@ void VulkanEngine::init()
 
     init_swapchain();
 
+    init_pipelines();
+
     is_initialized = true;
 }
 
@@ -833,4 +835,20 @@ VkExtent2D VulkanEngine::choose_swap_extent(const VkSurfaceCapabilitiesKHR &capa
 
         return actualExtent;
     }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::init_pipelines()
+{
+    create_graphics_pipeline();
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_graphics_pipeline()
+{
+
 }
