@@ -33,6 +33,28 @@ const std::vector<const char*> deviceExtensions = {
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+VkResult CreateDebugUtilsMessegerEXT(
+    VkInstance instance,
+    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDebugUtilsMessengerEXT* pDebugMessenger)
+{
+    auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+
+    if (func != nullptr)
+    {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    else
+    {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 void VulkanEngine::init()
 {
     create_window();
@@ -139,6 +161,8 @@ void VulkanEngine::init_vulkan()
 {
     create_instance();
 
+    setup_debug_messenger();
+
     create_surface();
 
     physical_device_detection();
@@ -189,14 +213,9 @@ void VulkanEngine::create_instance()
 
     }
 
-    uint32_t sdlExtensionsCount = 0;
-    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, nullptr);
-
-    std::vector<const char *> sdlExtinsionNames(sdlExtensionsCount);
-    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, sdlExtinsionNames.data());
-
-    info.enabledExtensionCount = sdlExtensionsCount;
-    info.ppEnabledExtensionNames = sdlExtinsionNames.data();
+    std::vector<const char*> extensions = get_required_extentions();
+    info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    info.ppEnabledExtensionNames = extensions.data();
 
     try
     {
@@ -205,6 +224,86 @@ void VulkanEngine::create_instance()
     catch (std::runtime_error &error)
     {
         std::cout << error.what() << std::endl;
+    }
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+std::vector<const char *> VulkanEngine::get_required_extentions()
+{
+    std::vector<const char*> extensions;
+
+    uint32_t sdlExtensionsCount = 0;
+    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, nullptr);
+
+    std::vector<const char *> sdlExtinsionNames(sdlExtensionsCount);
+    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionsCount, sdlExtinsionNames.data());
+
+    for (auto extension : sdlExtinsionNames)
+    {
+        extensions.push_back(extension);
+    }
+
+    if (enableValidationLayers)
+    {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    return extensions;
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    void *pUserData)
+{
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    {
+        std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
+    }
+
+    return VK_FALSE;
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::setup_debug_messenger()
+{
+    if (!enableValidationLayers)
+    {
+        return;
+    }
+
+    VkDebugUtilsMessengerCreateInfoEXT dbmInfo = {};
+    dbmInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    dbmInfo.pNext = nullptr;
+    dbmInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+
+    dbmInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+
+    dbmInfo.pfnUserCallback = debug_callback;
+    dbmInfo.pUserData = nullptr;
+
+    VkResult result = CreateDebugUtilsMessegerEXT(instance,
+                                                  &dbmInfo,
+                                                  nullptr,
+                                                  &debug_messenger);
+
+    VK_CHECK(result);
+
+    if (result != VK_SUCCESS)
+    {
+        throw std::runtime_error("ERROR: Failed to setup debug messenger!");
     }
 }
 

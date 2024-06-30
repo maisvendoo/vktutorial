@@ -49,6 +49,9 @@ private:
     /// Экземпляр Vulkan
     VkInstance  instance;
 
+    /// Дескриптор отладочного мессенжера
+    VkDebugUtilsMessengerEXT debug_messenger;
+
     /// Дескриптор доступного физического устройства
     std::optional<VkPhysicalDevice> physicalDevice;
 
@@ -84,6 +87,18 @@ private:
 
     /// Создание экземпляра
     void create_instance();
+
+    /// Получение списка необходимых для работы расширений Vulkan
+    std::vector<const char*> get_required_extentions();
+
+    /// Отладочный callback-метод
+    /*static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+        VkDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+        void *pUserData);*/
+
+    void setup_debug_messenger();
 
     /// Создание поверхности
     void create_surface();
