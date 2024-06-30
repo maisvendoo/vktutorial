@@ -52,6 +52,11 @@ void VulkanEngine::cleanup()
     // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        for (auto imageView : swapchainImageViews)
+        {
+            vkDestroyImageView(device, imageView, nullptr);
+        }
+
         // swapchain
         vkDestroySwapchainKHR(device, swapchain, nullptr);
 
@@ -452,6 +457,16 @@ void VulkanEngine::render()
 //------------------------------------------------------------------------------
 void VulkanEngine::init_swapchain()
 {
+    create_swapchain();
+
+    create_image_views();
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_swapchain()
+{
     SwapcainSupportedDetails swapchainDetails = query_swapchain_suppot(physicalDevice.value(), surface);
 
     VkSurfaceFormatKHR surfaceFormat = choose_swap_surface_format(swapchainDetails.formats);
@@ -463,7 +478,7 @@ void VulkanEngine::init_swapchain()
     uint32_t imageCount = swapchainDetails.capabilities.minImageCount + 1;
 
     if ( (swapchainDetails.capabilities.maxImageCount > 0) &&
-         (imageCount > swapchainDetails.capabilities.maxImageCount) )
+        (imageCount > swapchainDetails.capabilities.maxImageCount) )
     {
         imageCount = swapchainDetails.capabilities.maxImageCount;
     }
@@ -522,6 +537,45 @@ void VulkanEngine::init_swapchain()
 
     swapchainImageFormat = surfaceFormat.format;
     swapchainExtent = extent;
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void VulkanEngine::create_image_views()
+{
+    swapchainImageViews.resize(swapchainImages.size());
+
+    for (size_t i = 0; i < swapchainImages.size(); ++i)
+    {
+        VkImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.pNext = nullptr;
+        imageViewCreateInfo.image = swapchainImages[i];
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = swapchainImageFormat;
+        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        VkResult result = vkCreateImageView(device,
+                                            &imageViewCreateInfo,
+                                            nullptr,
+                                            &swapchainImageViews[i]);
+
+        VK_CHECK(result);
+
+        if (result != VK_SUCCESS)
+        {
+            throw std::runtime_error("ERROR: Failed to create image views!");
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

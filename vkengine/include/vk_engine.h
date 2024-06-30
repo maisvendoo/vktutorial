@@ -74,6 +74,8 @@ private:
 
     VkExtent2D swapchainExtent;
 
+    std::vector<VkImageView> swapchainImageViews;
+
     /// Создание окна приложения
     void create_window();
 
@@ -106,6 +108,11 @@ private:
 
     /// Инициализация цепочки буферов изображений
     void init_swapchain();
+
+    /// Создание swapchain
+    void create_swapchain();
+
+    void create_image_views();
 
     /// Проверка поддержки расширений устройства
     bool check_device_extensions_support(VkPhysicalDevice physicalDevice,
