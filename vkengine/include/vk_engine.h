@@ -62,7 +62,7 @@ private:
     DeviceQueues deviceQueues;
 
     /// Дескриптор поверхности
-    VkSurfaceKHR surface;
+    VkSurfaceKHR surface;    
 
     /// Создание окна приложения
     void create_window();
@@ -93,6 +93,25 @@ private:
 
     /// Рендеринг
     void render();
+
+    /// Инициализация цепочки буферов изображений
+    void init_swapchain();
+
+    /// Проверка поддержки расширений устройства
+    bool check_device_extensions_support(VkPhysicalDevice physicalDevice,
+                                         const std::vector<const char *> &deviceExtensions);
+
+    SwapcainSupportedDetails query_swapchain_suppot(
+        VkPhysicalDevice physicalDevice,
+        VkSurfaceKHR surface);
+
+    VkSurfaceFormatKHR choose_swap_surface_format(
+        const std::vector<VkSurfaceFormatKHR> &availableFormats);
+
+    VkPresentModeKHR choose_swap_present_mode(
+        const std::vector<VkPresentModeKHR> &availablePresentModes);
+
+    VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR &capabilities);
 };
 
 #endif

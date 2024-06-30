@@ -5,6 +5,7 @@
 #include    <vulkan/vk_enum_string_helper.h>
 
 #include    <optional>
+#include    <vector>
 
 /*!
  * \struct
@@ -36,6 +37,20 @@ struct DeviceQueues
 {
     VkQueue graphicsQueue;
     VkQueue presentQueue;
+};
+
+/*!
+ * \struct
+ * \brief Параметры поддерживаемого устройством swapchain
+ */
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+struct SwapcainSupportedDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
 };
 
 //------------------------------------------------------------------------------
