@@ -21,7 +21,7 @@ file (GLOB SOURCES "./src/*.cpp")
 file (GLOB VERT_SHADERS "./shaders/*.vert")
 file (GLOB FRAG_SHADERS "./shaders/*.frag")
 
-# Ищем в системе установленный Vulkan SDK
+# Ищем в системе установленные зависимости
 find_package (Vulkan REQUIRED)
 find_package (SDL2 REQUIRED)
 
@@ -31,7 +31,7 @@ add_executable (${TARGET} ${SOURCES} ${INCLUDES})
 # Указыаем каталог поиска заголовочных файлов
 target_include_directories (${TARGET} PRIVATE ./include/)
 
-# Компонуем исполняемый файл с библиотеками Vulkan
+# Компонуем исполняемый файл с библиотеками зависимостей
 target_link_libraries (${TARGET} PRIVATE Vulkan::Vulkan)
 target_link_libraries (${TARGET} PRIVATE SDL2::SDL2)
 
@@ -72,4 +72,4 @@ function (add_shaders TARGET_NAME)
 endfunction()
 
 # Собственно компиляция шейдеров
-add_shaders(engine-shaders ${VERT_SHADERS} ${FRAG_SHADERS})
+add_shaders(shaders ${VERT_SHADERS} ${FRAG_SHADERS})

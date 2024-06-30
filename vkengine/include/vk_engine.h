@@ -80,16 +80,19 @@ private:
     std::vector<VkImageView> swapchainImageViews;
 
     /// Создание окна приложения
-    void create_window();
+    void create_window(const std::string &applicationName);
 
     /// Инициализация Vulkan
     void init_vulkan();
 
     /// Создание экземпляра
-    void create_instance();
+    void create_instance(const std::string &applicationName,
+                         const std::string &engineName,
+                         bool enableValidationLayers,
+                         const std::vector<const char *> &validationLayers);
 
     /// Получение списка необходимых для работы расширений Vulkan
-    std::vector<const char*> get_required_extentions();
+    std::vector<const char*> get_required_extentions(bool enableValidationLayers);
 
     /// Отладочный callback-метод
     /*static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
@@ -98,7 +101,7 @@ private:
         const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
         void *pUserData);*/
 
-    void setup_debug_messenger();
+    void setup_debug_messenger(bool enableValidationLayers);
 
     /// Создание поверхности
     void create_surface();
@@ -113,7 +116,9 @@ private:
     void queue_families_detection();
 
     /// Создание логического устройства
-    void create_logical_device();
+    void create_logical_device(const std::vector<const char *> &deviceExtensions,
+                               bool enableValidationLayers,
+                               const std::vector<const char *> &validationLayers);
 
     /// Получение дескрипторов очередей логического устройства
     void get_device_queues();
