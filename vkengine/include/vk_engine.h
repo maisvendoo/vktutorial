@@ -153,6 +153,8 @@ private:
     void init_pipelines();
 
     void create_graphics_pipeline();
+
+    VkShaderModule create_shader_module(const std::vector<char> &code);
 };
 
 #endif
