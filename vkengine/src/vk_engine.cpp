@@ -1,12 +1,11 @@
 #include    <vk_engine.h>
 
-#include    <iostream>
 #include    <string>
 #include    <vector>
-#include    <cstring>
 #include    <thread>
 #include    <chrono>
-#include    <set>
+
+#include    <vk_proxy_funcs.h>
 
 
 constexpr std::string ApplicationName = "Vulkane Engine";
@@ -67,6 +66,9 @@ void VulkanEngine::cleanup()
 
         // Поверхность
         vkDestroySurfaceKHR(instance, surface, nullptr);
+
+        // Отладочный месседжер
+        DestroyDebugUtilsMessegerEXT(instance, debug_messenger, nullptr);
 
         // Экземпляр
         vkDestroyInstance(instance, nullptr);

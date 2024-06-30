@@ -12,4 +12,11 @@ VkResult CreateDebugUtilsMessegerEXT(
     const VkAllocationCallbacks* pAllocator,
     VkDebugUtilsMessengerEXT* pDebugMessenger);
 
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void DestroyDebugUtilsMessegerEXT(VkInstance instance,
+    VkDebugUtilsMessengerEXT pDebugMessenger,
+    const VkAllocationCallbacks *pAllocator);
+
 #endif

@@ -21,3 +21,19 @@ VkResult CreateDebugUtilsMessegerEXT(
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void DestroyDebugUtilsMessegerEXT(VkInstance instance,
+                                  VkDebugUtilsMessengerEXT pDebugMessenger,
+                                  const VkAllocationCallbacks *pAllocator)
+{
+    auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+
+    if (func != nullptr)
+    {
+        func(instance, pDebugMessenger, pAllocator);
+    }
+}
