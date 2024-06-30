@@ -52,6 +52,9 @@ void VulkanEngine::cleanup()
     // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        // swapchain
+        vkDestroySwapchainKHR(device, swapchain, nullptr);
+
         // Логическое устройство
         vkDestroyDevice(device, nullptr);
 
@@ -456,6 +459,69 @@ void VulkanEngine::init_swapchain()
     VkPresentModeKHR presentMode = choose_swap_present_mode(swapchainDetails.presentModes);
 
     VkExtent2D extent = choose_swap_extent(swapchainDetails.capabilities);
+
+    uint32_t imageCount = swapchainDetails.capabilities.minImageCount + 1;
+
+    if ( (swapchainDetails.capabilities.maxImageCount > 0) &&
+         (imageCount > swapchainDetails.capabilities.maxImageCount) )
+    {
+        imageCount = swapchainDetails.capabilities.maxImageCount;
+    }
+
+    VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainCreateInfo.pNext = nullptr;
+    swapchainCreateInfo.surface = surface;
+    swapchainCreateInfo.minImageCount = imageCount;
+    swapchainCreateInfo.imageFormat = surfaceFormat.format;
+    swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+    swapchainCreateInfo.imageExtent = extent;
+    swapchainCreateInfo.imageArrayLayers = 1;
+    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    uint32_t queueFamilyIndices[] = {
+        this->queueFamilyIndices.graphicsFamily.value(),
+        this->queueFamilyIndices.presentFamily.value()
+    };
+
+    if (this->queueFamilyIndices.graphicsFamily !=
+        this->queueFamilyIndices.presentFamily)
+    {
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swapchainCreateInfo.queueFamilyIndexCount = 2;
+        swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+    else
+    {
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainCreateInfo.queueFamilyIndexCount = 0;
+        swapchainCreateInfo.pQueueFamilyIndices = nullptr;
+    }
+
+    swapchainCreateInfo.preTransform = swapchainDetails.capabilities.currentTransform;
+    swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchainCreateInfo.presentMode = presentMode;
+    swapchainCreateInfo.clipped = VK_TRUE;
+    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    VkResult result = vkCreateSwapchainKHR(device,
+                                           &swapchainCreateInfo,
+                                           nullptr,
+                                           &swapchain);
+
+    VK_CHECK(result);
+
+    if (result != VK_SUCCESS)
+    {
+        throw std::runtime_error("ERROR: Failed to create swapchain!");
+    }
+
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+    swapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapchainImages.data());
+
+    swapchainImageFormat = surfaceFormat.format;
+    swapchainExtent = extent;
 }
 
 //------------------------------------------------------------------------------
@@ -603,6 +669,14 @@ VkExtent2D VulkanEngine::choose_swap_extent(const VkSurfaceCapabilitiesKHR &capa
         VkExtent2D actualExtent;
         actualExtent.width = static_cast<uint32_t>(width);
         actualExtent.height = static_cast<uint32_t>(height);
+
+        actualExtent.width = std::max(capabilities.minImageExtent.width,
+                                      std::min(capabilities.maxImageExtent.width,
+                                               actualExtent.width));
+
+        actualExtent.height = std::max(capabilities.minImageExtent.height,
+                                      std::min(capabilities.maxImageExtent.height,
+                                               actualExtent.height));
 
         return actualExtent;
     }

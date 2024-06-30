@@ -62,7 +62,17 @@ private:
     DeviceQueues deviceQueues;
 
     /// Дескриптор поверхности
-    VkSurfaceKHR surface;    
+    VkSurfaceKHR surface;
+
+    /// Дескриптор swapchain
+    VkSwapchainKHR swapchain;
+
+    /// Изобраения из swapchain
+    std::vector<VkImage> swapchainImages;
+
+    VkFormat swapchainImageFormat;
+
+    VkExtent2D swapchainExtent;
 
     /// Создание окна приложения
     void create_window();
