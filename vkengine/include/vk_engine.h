@@ -85,6 +85,11 @@ private:
 
     VkPipeline graphicsPipeline;
 
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+
+    /// Пул команд
+    VkCommandPool commandPool;
+
     /// Создание окна приложения
     void create_window(const std::string &applicationName);
 
@@ -163,6 +168,12 @@ private:
     void create_graphics_pipeline();
 
     VkShaderModule create_shader_module(const std::vector<char> &code);
+
+    void create_framebuffers();
+
+    void init_commands();
+
+    void create_command_pool();
 };
 
 #endif

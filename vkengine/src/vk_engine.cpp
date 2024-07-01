@@ -42,6 +42,8 @@ void VulkanEngine::init()
 
     init_pipelines();
 
+    init_commands();
+
     is_initialized = true;
 }
 
@@ -53,6 +55,13 @@ void VulkanEngine::cleanup()
     // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        vkDestroyCommandPool(device, commandPool, nullptr);
+
+        for (auto framebuffer : swapchainFramebuffers)
+        {
+            vkDestroyFramebuffer(device, framebuffer, nullptr);
+        }
+
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
 
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
@@ -171,4 +180,12 @@ void VulkanEngine::init_pipelines()
     create_renderpass();
 
     create_graphics_pipeline();
+}
+
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void  VulkanEngine::init_commands()
+{
+    create_command_pool();
 }
