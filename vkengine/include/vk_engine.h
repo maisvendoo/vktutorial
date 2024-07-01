@@ -83,6 +83,8 @@ private:
 
     VkPipelineLayout pipelineLayout;
 
+    VkPipeline graphicsPipeline;
+
     /// Создание окна приложения
     void create_window(const std::string &applicationName);
 

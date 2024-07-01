@@ -53,6 +53,8 @@ void VulkanEngine::cleanup()
     // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        vkDestroyPipeline(device, graphicsPipeline, nullptr);
+
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
         vkDestroyRenderPass(device, renderpass, nullptr);
