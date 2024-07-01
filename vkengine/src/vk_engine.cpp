@@ -53,6 +53,8 @@ void VulkanEngine::cleanup()
     // Все созданные объекты уничтожаем в порядке, обратном их созданию
     if (is_initialized)
     {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
         for (auto imageView : swapchainImageViews)
         {
             vkDestroyImageView(device, imageView, nullptr);

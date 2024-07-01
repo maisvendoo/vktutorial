@@ -79,6 +79,8 @@ private:
 
     std::vector<VkImageView> swapchainImageViews;
 
+    VkPipelineLayout pipelineLayout;
+
     /// Создание окна приложения
     void create_window(const std::string &applicationName);
 
