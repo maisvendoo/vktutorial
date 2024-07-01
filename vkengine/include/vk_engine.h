@@ -90,6 +90,9 @@ private:
     /// Пул команд
     VkCommandPool commandPool;
 
+    /// Буферы команд
+    std::vector<VkCommandBuffer> commandBuffers;
+
     /// Создание окна приложения
     void create_window(const std::string &applicationName);
 
@@ -174,6 +177,8 @@ private:
     void init_commands();
 
     void create_command_pool();
+
+    void create_command_buffers();
 };
 
 #endif

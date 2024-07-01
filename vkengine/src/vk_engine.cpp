@@ -180,6 +180,8 @@ void VulkanEngine::init_pipelines()
     create_renderpass();
 
     create_graphics_pipeline();
+
+    create_framebuffers();
 }
 
 //------------------------------------------------------------------------------
@@ -188,4 +190,6 @@ void VulkanEngine::init_pipelines()
 void  VulkanEngine::init_commands()
 {
     create_command_pool();
+
+    create_command_buffers();
 }
