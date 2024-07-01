@@ -79,6 +79,8 @@ private:
 
     std::vector<VkImageView> swapchainImageViews;
 
+    VkRenderPass renderpass;
+
     VkPipelineLayout pipelineLayout;
 
     /// Создание окна приложения
@@ -153,6 +155,8 @@ private:
     VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR &capabilities);
 
     void init_pipelines();
+
+    void create_renderpass();
 
     void create_graphics_pipeline();
 

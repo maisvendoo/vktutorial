@@ -55,6 +55,8 @@ void VulkanEngine::cleanup()
     {
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
+        vkDestroyRenderPass(device, renderpass, nullptr);
+
         for (auto imageView : swapchainImageViews)
         {
             vkDestroyImageView(device, imageView, nullptr);
@@ -164,5 +166,7 @@ void VulkanEngine::init_swapchain()
 //------------------------------------------------------------------------------
 void VulkanEngine::init_pipelines()
 {
+    create_renderpass();
+
     create_graphics_pipeline();
 }
